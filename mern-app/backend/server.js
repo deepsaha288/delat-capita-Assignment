@@ -5,31 +5,31 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 app.use(express.json());
-// Connect to MongoDB
+
 mongoose.connect('mongodb://root:admin@mongo:27017/mern-crud?authSource=admin', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
 
-    const Item = mongoose.model('Item', { name: String });
+const Item = mongoose.model('Item', { name: String });
 
-    app.get('/items', async (req, res) => {
+app.get('/items', async (req, res) => {
     const items = await Item.find();
     res.json(items);
-    });
+});
 
-    app.post('/items', async (req, res) => {
+app.post('/items', async (req, res) => {
     const newItem = new Item({ name: req.body.name });
     await newItem.save();
     res.json(newItem);
-    });
+});
 
-    app.put('/items/:id', async (req, res) => {
+app.put('/items/:id', async (req, res) => {
     const item = await Item.findByIdAndUpdate(req.params.id, { name: req.body.name }, { new: true });
     res.json(item);
-    });
+});
 
-    app.delete('/items/:id', async (req, res) => {
+app.delete('/items/:id', async (req, res) => {
     await Item.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted' });
 });

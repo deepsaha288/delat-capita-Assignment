@@ -7,7 +7,7 @@ function App() {
     const [editId, setEditId] = useState(null);
 
     const fetchItems = async () => {
-        const res = await axios.get('/api/items');
+        const res = await axios.get('http://localhost:5000/items');  // adjust later for EKS
         setItems(res.data);
     };
 
@@ -18,13 +18,13 @@ function App() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (editId) {
-        await axios.put(`/api/items/${editId}`, { name });
+        await axios.put(`http://localhost:5000/items/${editId}`, { name });
         setEditId(null);
         } else {
-        await axios.post('/api/items', { name });
+        await axios.post('http://localhost:5000/items', { name });
         }
-        setName('');
-        fetchItems();
+    setName('');
+    fetchItems();
     };
 
     const handleEdit = (item) => {
@@ -33,12 +33,12 @@ function App() {
     };
 
     const handleDelete = async (id) => {
-        await axios.delete(`/api/items/${id}`);
+        await axios.delete(`http://localhost:5000/items/${id}`);
         fetchItems();
     };
 
     return (
-        <div>
+    <div>
         <h1>MERN CRUD</h1>
         <form onSubmit={handleSubmit}>
             <input value={name} onChange={e => setName(e.target.value)} />
