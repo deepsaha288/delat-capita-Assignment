@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'terraform action')
+    }
+
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('aws-creds')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
+        AWS_DEFAULT_REGION    = 'us-east-1'
+    }
+
+    stages {
+        stage('Checkout') {
+        steps {
+            git credentialsId: 'github-creds', url: 'https://github.com/deepsaha288/Assistment-Test.git'
+        }
+        }
+
+        stage('Terraform Init') {
+        steps {
+            dir('eks-terraform') {
+            sh 'terraform init'
+            }
+        }
+        }
+
+        stage('Terraform Plan') {
+        steps {
+            dir('eks-terraform') {
+            sh 'terraform plan'
+            }
+        }
+        }
+
+        stage('Terraform Apply/Destroy') {
+        steps {
+            dir('eks-terraform') {
+            script {
+                if (params.ACTION == 'apply') {
+                sh 'terraform apply -auto-approve'
+                } else {
+                sh 'terraform destroy -auto-approve'
+                }
+            }
+            }
+        }
+        }
+    }
+// Post actions can be added here if needed
+    post {
+        always {
+        echo 'Cleaning up...'
+        dir('eks-terraform') {
+            sh 'terraform workspace select default || terraform workspace new default'
+        }
+        }
+        success {
+        echo 'Pipeline completed successfully!'
+        }
+        failure {
+        echo 'Pipeline failed!'
+    }
+}
+}
+
+

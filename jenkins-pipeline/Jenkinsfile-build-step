@@ -1,0 +1,79 @@
+pipeline {
+agent any
+
+environment {
+    BACKEND_IMAGE  = "deepsaha288/mern-backend"
+    FRONTEND_IMAGE = "deepsaha288/mern-frontend"
+    KUBECONFIG     = credentials('kubeconfig')  // Optional if you use AWS CLI directly
+    }
+
+    tools {
+        nodejs "NodeJS 18"
+    }
+
+    stages {
+        stage('Checkout') {
+        steps {
+            git credentialsId: 'github-creds', url: 'https://github.com/deepsaha288/Assistment-Test.git'
+        }
+    }
+
+    stage('Build Backend') {
+        steps {
+            dir('mern-app/backend') {
+            sh 'npm install'
+            sh 'docker build -t $BACKEND_IMAGE:latest .'
+            }
+        }
+    }
+
+    stage('Push Backend') {
+        steps {
+            script {
+            docker.withRegistry('', 'dockerhub-creds') {
+                docker.image("$BACKEND_IMAGE:latest").push()
+            }
+            }
+        }
+    }
+
+    stage('Build Frontend') {
+        steps {
+            dir('mern-app/frontend') {
+            sh 'npm install'
+            sh 'docker build -t $FRONTEND_IMAGE:latest .'
+            }
+        }
+    }
+
+    stage('Push Frontend') {
+        steps {
+            script {
+            docker.withRegistry('', 'dockerhub-creds') {
+                docker.image("$FRONTEND_IMAGE:latest").push()
+            }
+            }
+        }
+    }
+
+    stage('Deploy to EKS') {
+    steps {
+        withCredentials([[
+        $class: 'AmazonWebServicesCredentialsBinding',
+        credentialsId: 'aws-creds'
+        ]]) {
+        sh '''
+            aws eks --region us-east-1 update-kubeconfig --name Client-EKS-Cluster
+
+            kubectl apply -f clients-api/namespace.yaml
+            kubectl apply -f clients-api/mongodb-deployment.yaml
+            kubectl apply -f clients-api/backend-deployment.yaml
+            kubectl apply -f clients-api/frontend-deployment.yaml
+            kubectl apply -f clients-api/ingress.yaml
+            kubectl apply -f clients-api/cluster-issuer.yaml
+            '''
+            }
+        }
+        }
+    }
+}
