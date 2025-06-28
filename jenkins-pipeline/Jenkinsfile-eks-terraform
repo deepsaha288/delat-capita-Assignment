@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Checkout') {
         steps {
-            git credentialsId: 'github-creds', url: 'https://github.com/deepsaha288/Assistment-Test.git'
+            git credentialsId: 'github-creds', url: 'https://github.com/deepsaha288/delat-capita-Assignment.git'
         }
         }
 

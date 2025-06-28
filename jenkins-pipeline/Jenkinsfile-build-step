@@ -1,10 +1,9 @@
 pipeline {
-agent any
+    agent any
 
-environment {
-    BACKEND_IMAGE  = "deepsaha288/mern-backend"
-    FRONTEND_IMAGE = "deepsaha288/mern-frontend"
-    KUBECONFIG     = credentials('kubeconfig')  // Optional if you use AWS CLI directly
+    environment {
+        IMAGE_NAME = "deepsaha288/mern-app"
+        KUBECONFIG = credentials('kubeconfig')
     }
 
     tools {
@@ -12,68 +11,65 @@ environment {
     }
 
     stages {
-        stage('Checkout') {
+    stage('Checkout') {
         steps {
-            git credentialsId: 'github-creds', url: 'https://github.com/deepsaha288/Assistment-Test.git'
+            git credentialsId: 'github-creds', url: 'https://github.com/deepsaha288/delat-capita-Assignment.git'
         }
-    }
+        }
 
-    stage('Build Backend') {
+        stage('Build Docker Image') {
         steps {
-            dir('mern-app/backend') {
+            dir('mern-app') {
             sh 'npm install'
-            sh 'docker build -t $BACKEND_IMAGE:latest .'
+            sh 'docker build -t $IMAGE_NAME:latest .'
             }
         }
     }
 
-    stage('Push Backend') {
+    stage('Push Image to DockerHub') {
         steps {
             script {
             docker.withRegistry('', 'dockerhub-creds') {
-                docker.image("$BACKEND_IMAGE:latest").push()
-            }
-            }
-        }
-    }
-
-    stage('Build Frontend') {
-        steps {
-            dir('mern-app/frontend') {
-            sh 'npm install'
-            sh 'docker build -t $FRONTEND_IMAGE:latest .'
-            }
-        }
-    }
-
-    stage('Push Frontend') {
-        steps {
-            script {
-            docker.withRegistry('', 'dockerhub-creds') {
-                docker.image("$FRONTEND_IMAGE:latest").push()
+                docker.image("$IMAGE_NAME:latest").push()
             }
             }
         }
     }
 
     stage('Deploy to EKS') {
-    steps {
-        withCredentials([[
-        $class: 'AmazonWebServicesCredentialsBinding',
-        credentialsId: 'aws-creds'
-        ]]) {
-        sh '''
+        steps {
+            withCredentials([
+            [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
+            ]) {
+            sh '''
             aws eks --region us-east-1 update-kubeconfig --name Client-EKS-Cluster
 
-            kubectl apply -f clients-api/namespace.yaml
-            kubectl apply -f clients-api/mongodb-deployment.yaml
-            kubectl apply -f clients-api/backend-deployment.yaml
-            kubectl apply -f clients-api/frontend-deployment.yaml
-            kubectl apply -f clients-api/ingress.yaml
-            kubectl apply -f clients-api/cluster-issuer.yaml
+            kubectl apply -f manifest-file/namespace.yaml
+            kubectl apply -f manifest-file/mongodb-deployment.yaml
+            kubectl apply -f manifest-file/mongodb-service.yaml
+            kubectl apply -f manifest-file/mongo-express-deployment.yaml
+            kubectl apply -f manifest-file/mongo-express-service.yaml
+            kubectl apply -f manifest-file/app-deployment.yaml
+            kubectl apply -f manifest-file/app-service.yaml
+            kubectl apply -f manifest-file/issuer.yaml
+            kubectl apply -f manifest-file/certificate.yaml
+            kubectl apply -f manifest-file/ingress.yaml
             '''
             }
         }
         }
     }
 }
+// Post actions can be added here if needed
+    post {
+        always {
+        echo 'Cleaning up...'
+        sh 'docker rmi $IMAGE_NAME:latest || true'
+        }
+        success {
+        echo 'Pipeline completed successfully!'
+        }
+        failure {
+        echo 'Pipeline failed!'
+        }
+    }

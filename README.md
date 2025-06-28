@@ -1,7 +1,7 @@
 Overview Architecture
 GitHub Repo ──▶ Jenkins CI ──▶ DockerHub
                            └──▶ EKS Cluster (via Terraform)
-                                       └─▶ MongoDB, Backend API, Frontend React App
+                                       └─▶ MongoDB, NodeJs-App
                                                  └─▶ Access via Ingress + TLS (Let's Encrypt)
 
 STEP 1: Provision EC2 Ubuntu Server
@@ -11,7 +11,7 @@ SSH: 22
 Jenkins: 8080
 SonarQube: 9000
 HTTP/HTTPS: 80/443
-Port: 3000/5000 backend/frontend
+Port: 5050 application
 
 Install Required Packages
 Run the following script to install required tools:
@@ -28,7 +28,7 @@ kubectl
 
 STEP 2: Create EKS Cluster with Terraform
 Clone EKS Terraform Code:
-git clone https://github.com/deepsaha288/Assistment-Test.git
+git clone https://github.com/deepsaha288/delat-capita-Assignment.git
 cd eks-terraform
 Apply via Jenkins Pipeline:
 set up: Jenkinsfile-eks-terraform --> here
@@ -61,19 +61,22 @@ STEP 7: Deploy Clients API + MongoDB to EKS
 Create Namespace:
 kubectl create namespace mern-app
 Apply All Manifests:
-kubectl apply -f clients-api/namespace.yaml
-kubectl apply -f clients-api/mongodb-deployment.yaml
-kubectl apply -f clients-api/backend-deployment.yaml
-kubectl apply -f clients-api/frontend-deployment.yaml
-kubectl apply -f clients-api/ingress.yaml
+kubectl apply -f manifest-file/namespace.yaml
+kubectl apply -f manifest-file/mongodb-deployment.yaml
+kubectl apply -f manifest-file/mongodb-service.yaml
+kubectl apply -f manifest-file/mongo-express-deployment.yaml
+kubectl apply -f manifest-file/mongo-express-service.yaml
+kubectl apply -f manifest-file/app-deployment.yaml
+kubectl apply -f manifest-file/app-service.yaml
+kubectl apply -f manifest-file/issuer.yaml
+kubectl apply -f manifest-file/certificate.yaml
+kubectl apply -f manifest-file/ingress.yaml
 
 STEP 8: Jenkins CI/CD Pipeline Setup
 The Jenkinsfile has the following stages:
 Checkout – Pull code from GitHub
-Build Backend – Docker build backend
-Push Backend – Push backend image to DockerHub
-Build Frontend – Docker build frontend
-Push Frontend – Push frontend image to DockerHub
+Build Docker Image – Docker build images
+Push Image to DockerHub- images push into dockerhub registry
 Deploy to EKS – Run kubectl apply on all manifests
 
 Credentials i setup on Jenkins console:
@@ -89,9 +92,9 @@ HTTPS enabled with Let's Encrypt
 Valid certificate issued
 
 Check Kubernetes Health:
-kubectl get all -n clients
-kubectl describe ingress -n clients
-kubectl logs deploy/backend-api -n clients
+kubectl get all -n clients-api-ns
+kubectl describe ingress -n clients-api-ns
+
 
 
 Clients API Full Architecture Diagram
@@ -103,7 +106,7 @@ Clients API Full Architecture Diagram
                                        ▼
                           ┌────────────────────────────┐
                           │      Jenkins on EC2        │
-                          │  + Docker, SonarQube, etc. │
+                          │  + Docker, Kubectl, etc. │
                           └────────────────────────────┘
                                        │
                                        ▼

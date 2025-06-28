@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: clients-api-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: deepsaha288/univ-backend:latest
+          ports:
+            - containerPort: 5050
+          env:
+            - name: MONGO_URL
+              value: mongodb://admin:password@mongodb-service:27017
