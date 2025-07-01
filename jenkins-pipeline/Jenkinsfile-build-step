@@ -43,17 +43,15 @@ pipeline {
             ]) {
             sh '''
             aws eks --region us-east-1 update-kubeconfig --name Client-EKS-Cluster
-
-            kubectl apply -f manifest-file/namespace.yaml
-            kubectl apply -f manifest-file/mongodb-deployment.yaml
-            kubectl apply -f manifest-file/mongodb-service.yaml
-            kubectl apply -f manifest-file/mongo-express-deployment.yaml
-            kubectl apply -f manifest-file/mongo-express-service.yaml
-            kubectl apply -f manifest-file/app-deployment.yaml
-            kubectl apply -f manifest-file/app-service.yaml
-            kubectl apply -f manifest-file/issuer.yaml
-            kubectl apply -f manifest-file/certificate.yaml
-            kubectl apply -f manifest-file/ingress.yaml
+            kubectl apply -f manifests/namespace.yaml
+            kubectl apply -f manifests/certificate.yaml
+            kubectl apply -f manifests/mongo-deployment.yaml
+            kubectl apply -f manifests/mongo-service.yaml
+            kubectl apply -f manifests/express-mongo-deployment.yaml
+            kubectl apply -f manifests/express-mongo-service.yaml
+            kubectl apply -f manifests/app-deployment.yaml
+            kubectl apply -f manifests/app-service.yaml
+            kubectl apply -f manifests/ingress.yaml
             '''
             }
         }

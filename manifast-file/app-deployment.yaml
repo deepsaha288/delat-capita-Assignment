@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: deepsaha288/univ-backend:latest
+          image: deepsaha288/nodejs:latest
           ports:
             - containerPort: 5050
           env:

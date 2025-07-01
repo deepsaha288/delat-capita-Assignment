@@ -7,5 +7,7 @@ spec:
   selector:
     app: backend
   ports:
-    - port: 5050
+    - port: 80
       targetPort: 5050
+  type: ClusterIP
+  clusterIP: None

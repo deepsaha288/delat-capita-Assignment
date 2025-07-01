@@ -43,3 +43,10 @@ services:
 networks:
   custom-net:
     driver: bridge
+volumes:
+  mongo-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./data
+      o: bind
