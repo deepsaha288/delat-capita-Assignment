@@ -1,2 +1,9 @@
-Time_list =[1,4,7,3,9,2,8,5]
-print(sorted(Time_list))
+# prime number check
+import sys
+def is_prime(n):
+    if n <= 1:
+        return False
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
